@@ -1,1 +1,87 @@
 This is test file from github for devops class
+
+Thanks — your screenshot clearly shows the exact problem:
+
+ERROR! Syntax Error while loading YAML.
+Mapping values are not allowed here
+The offending line appears to be:
+'{{ disk_output.stdout }}'
+
+This means your YAML indentation or quoting is wrong around this block:
+
+content: "{{ disk_output.stdout }}"
+
+Most likely, you used tabs OR your indentation is wrong on that line.
+
+Let me give you a 100% correct, fixed, clean playbook.
+Just replace your playbook with this one exactly.
+
+
+---
+
+✅ Corrected support_playbook.yaml (no syntax errors)
+
+---
+- name: Create user and generate disk report
+  hosts: all
+  become: yes
+
+  tasks:
+
+    - name: Create supportuser
+      user:
+        name: supportuser
+        state: present
+        shell: /bin/bash
+
+    - name: Add supportuser to sudoers
+      copy:
+        dest: /etc/sudoers.d/supportuser
+        content: "supportuser ALL=(ALL) NOPASSWD:ALL"
+        mode: "0440"
+
+    - name: Run df -h and save output
+      command: df -h
+      register: disk_output
+
+    - name: Save disk report to file
+      copy:
+        dest: /tmp/diskreport.txt
+        content: "{{ disk_output.stdout }}"
+        mode: "0644"
+
+
+---
+
+⚠️ Important Notes
+
+1️⃣ NO TABS — YAML must use spaces only
+
+Go to VS Code
+Bottom-right → Spaces: 2
+If it's "Tab", change it:
+Press → Ctrl + Shift + P → "Convert indentation to Spaces"
+
+2️⃣ Indentation must match exactly
+
+Each level = 2 spaces
+
+3️⃣ Quotes must be simple
+
+Use "{{ disk_output.stdout }}" exactly like above.
+
+
+---
+
+🎯 Now run the playbook again:
+
+ansible-playbook -i inventory.ini support_playbook.yaml
+
+
+---
+
+❓ If it still errors
+
+Send me only lines 18–30 of your YAML (or photo), and I’ll fix it instantly.
+
+Your current screenshot shows the exact location of the error — I know how to fix it.
